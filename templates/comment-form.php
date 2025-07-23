@@ -20,39 +20,38 @@
 <h3>Add your comment</h3>
 <form method="post">
 <p>
-    <label for="comment-name">
-        Name;
+    <label for="comment_name">
+        Name
     </label>
     <input 
     type="text"
-    id="comment-name"
-    name="comment-name"
+    id="comment_name"
+    name="comment_name"
     value="<?php echo htmlEscape($commentData['name']) ?>"
     />
     </p>
 <p>
-<label for="comment-website">
+<label for="comment_website">
 Website
     </label>
 <input
 type="text"
-id="comment-website"
-name="comment-website"
+id="comment_website"
+name="comment_website"
 value="<?php echo htmlEscape($commentData['website']) ?>"
 />
     </p>
 
     <p>
-        <label for="comment-text">
+        <label for="comment_text">
             Comment:
             </label>
             <textarea
-            id="comment-text"
-            name="comment-text"
+            id="comment_text"
+            name="comment_text"
             rows="8"
             cols="70"
-            value="<?php echo htmlEscape($commentData['text'])?>"
-            >
+            ><?php echo htmlEscape($commentData['text'])?>
                 </textarea>
         </p>
 <input

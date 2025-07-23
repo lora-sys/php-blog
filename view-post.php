@@ -77,6 +77,7 @@ if($_POST)
           <?php echo htmlEscape($comment['text']) ?>      
     </div>
        <?php endforeach; ?>
+       <?php require 'templates/comment-form.php';?>
 </body> 
 
 
