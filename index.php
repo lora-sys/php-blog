@@ -1,14 +1,12 @@
 <?php
 // Work out the path to the database, so SQLite/PDO can connect
-$root = __DIR__;
-$database = $root . '/data/data.sqlite';
-$dsn = 'sqlite:' . $database;
+require 'lib/common.php';
 // Connect to the database, run a query, handle errors
 try{
-$pdo = new PDO($dsn);
+$pdo=getPDO();
 $stmt = $pdo->query(
     'SELECT
-        title, created_at, body
+       id, title, created_at, body
     FROM
         post
     ORDER BY
@@ -21,6 +19,7 @@ if ($stmt === false)
 {
     throw new Exception('There was a problem running this query');
 }
+$notFound=isset($_GET['not-found']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,21 +30,29 @@ if ($stmt === false)
     <body>
 
     <header>
-                <h1>Blog title</h1>
-        <p>This paragraph summarises what the blog is about.</p>
+                <?php require 'templates/title.php' ?>
         </header>
+        <?php if ($notFound) {?>
+        <div style="border: 1px solid #ff6666;padding:6px;">
+            Error: cannot find requesed blog post.
+        </div>
+        <?php }?>
         <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
             <h2>
-                <?php echo htmlspecialchars($row['title'], ENT_HTML5, 'UTF-8') ?>
+                <?php echo htmlEscape($row['title']); ?>
             </h2>
             <div>
-                <?php echo $row['created_at'] ?>
+                <?php echo convertSqlDate($row['created_at']); ?>
+                (<?php echo countCommentsForPost($row['id'])?> comments)
             </div>
             <p>
-                <?php echo htmlspecialchars($row['body'], ENT_HTML5, 'UTF-8') ?>
+                <?php echo htmlEscape($row['body']); ?>
             </p>
             <p>
-                <a href="#">Read more...</a>
+                <a 
+                href="view-post.php?post_id=<?php echo $row['id'] ?>"
+                >README MORE...
+                    </a>
             </p>
         <?php endwhile ?>
     </body>
