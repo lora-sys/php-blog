@@ -1,58 +1,36 @@
 <?php error_reporting(E_ALL);ini_set('display_errors', 1);
 ?>
 <?php
-// Get the PDO DSN string
-$root = realpath(__DIR__);
-$database = $root . '/data/data.sqlite';
-$dsn = 'sqlite:' . $database;
-$error = '';
-// A security measure, to avoid anyone resetting the database if it already exists
-if (is_readable($database) && filesize($database) > 0)
+require 'lib/common.php';
+
+require 'lib/install.php';
+
+// We store stuff in the session, to survive the redirect
+session_start();
+
+// Let's run the installer when we receive a POST request
+if ($_POST)
 {
-    $error = 'Please delete the existing database manually before installing it afresh';
-}
-// Create an empty file for the database
-if (!$error)
+    // Here we store the results of the installation in the session
+    $pdo =getPDO();
+    list($_SESSION['count'], $_SESSION['error']) = installBlog($pdo);
+
+    // Redirect to self, so we can show the results (from POST to GET)
+    redirectAndExit('install.php');
+
+}    
+
+// Let's report on the installation attempt
+$attempted = isset($_SESSION['error']) || isset($_SESSION['count']);
+if ($attempted)
 {
-    $createdOk = @touch($database);
-    if (!$createdOk)
-    {
-        $error = sprintf(
-            'Could not create the database, please allow the server to create new files in \'%s\'',
-            dirname($database)
-        );
-    }
+    $error = isset($_SESSION['error']) ? $_SESSION['error'] : '';
+    $count = isset($_SESSION['count']) ? $_SESSION['count'] : array();
+
+    // Unset the session data, so we only report the install/failure once
+    unset($_SESSION['count'], $_SESSION['error']);
 }
-// Grab the SQL commands we want to run on the database
-if (!$error)
-{
-    $sql = file_get_contents($root . '/data/init.sql');
-    if ($sql === false)
-    {
-        $error = 'Cannot find SQL file';
-    }
-}
-// Connect to the new database and try to run the SQL commands
-if (!$error)
-{
-    $pdo = new PDO($dsn);
-    $result = $pdo->exec($sql);
-    if ($result === false)
-    {
-        $error = 'Could not run SQL: ' . print_r($pdo->errorInfo(), true);
-    }
-}
-// See how many rows we created, if any
-$count = null;
-if (!$error)
-{
-    $sql = "SELECT COUNT(*) AS c FROM post";
-    $stmt = $pdo->query($sql);
-    if ($stmt)
-    {
-        $count = $stmt->fetchColumn();
-    }
-}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -74,17 +52,40 @@ if (!$error)
         </style>
     </head>
     <body>
-        <?php if ($error): ?>
-            <div class="error box">
-                <?php echo $error ?>
-            </div>
+        <?php if ($attempted): ?>
+
+            <?php if ($error): ?>
+                <div class="error box">
+                    <?php echo htmlspecialchars($error) ?>
+                </div>
+            <?php else: ?>
+                <div class="success box">
+                    The database and demo data were created OK.
+                    <?php foreach (array('post', 'comment') as $tableName): ?>
+                        <?php if (isset($count[$tableName])): ?>
+                            <?php echo $count[$tableName] ?> new
+                            <?php echo $tableName ?>s
+                            were created.
+                        <?php endif ?>
+                    <?php endforeach ?>
+                </div>
+            <?php endif ?>
+        <p>
+            <a href="index.php">View the blog</a> 
+            <a href="install.php"> install again</a> 
+            </p>
         <?php else: ?>
-            <div class="success box">
-                The database and demo data was created OK.
-                <?php if ($count): ?>
-                    <?php echo $count ?> new rows were created.
-                <?php endif ?>
-            </div>
+
+            <p>Click the install button to reset the database.</p>
+
+            <form method="post" action="install.php">
+                <input
+                    name="install"
+                    type="submit"
+                    value="Install"
+                    />
+            </form>
+
         <?php endif ?>
     </body>
 </html>

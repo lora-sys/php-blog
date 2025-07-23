@@ -1,49 +1,83 @@
-<?php 
-$root =__DIR__;
-@$database =$root."/data/data.sqlite";
-$dsn='sqlite:' .$database;
-try{
-$pdo =new PDO($dsn);
-$stmt = $pdo->prepare(
-'SELECT
-title,created_at,body
-FROM post
-WHERE id=:id'
-);}
-catch(PDOException $e){
-    die($e->getMessage());
+<?php
+require_once 'lib/common.php';
+require_once 'lib/view-post.php';
+// get the post id
+// get 或得页面信息
+if (isset($_GET['post_id'])) {
+    $post_id = $_GET['post_id'];
+} else {
+    $post_id = 0;
 }
-if ($stmt ===false){
-    throw new Exception('There was a problem running this query');
+
+// 输出 $post_id 以调试
+echo 'Post ID: ' . $post_id . '<br>';
+$pdo=getPDO();
+$row=getPostRow($pdo, $post_id);
+if(!$row){
+    redirectAndExit('index.php?not-found=1');
 }
-$result=$stmt->execute(array('id'=>1,));
-if ($result === false){
-    throw new Exception('There was a problem running this query');
+$errors=null;
+if($_POST)
+{
+    $commentData=array(
+        'name'=>$_POST['comment_name'],//超全局数组
+        'website'=>$_POST['comment_website'],
+        'text'=>$_POST['comment_text'],
+    );
+    $errors=writeCommentForm(
+        $pdo,
+        $post_id,
+        $commentData
+    );
+    // 没有错，就重定向会自己，防止重复提交表单
+    if(!$errors){
+        redirectAndExit('view-post.php?post_id='.$postId);
+    }
+}else{
+    $commentData=array(
+        'name'=>'',
+        'website'=>'',
+        'text'=>'',
+    );
 }
-$row= $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>A blog application | <?php echo htmlspecialchars($row['title'],ENT_HTML5,'utf-8') ?>
+    <title>A blog application | <?php echo htmlspecialchars($row['title'], ENT_HTML5, 'utf-8') ?>
 </title>
 <meta http-equiv="Content-Type" content="text/html,charset=utf-8"/>
 </head>    
 <body>
-<h1>Blog title</h1>
-<p>This paragraph summaries what the blog is bout</p>
+<?php require "templates/title.php"  ?>
 <h2>
-    <?php echo htmlspecialchars($row['title'],ENT_HTML5,'utf-8') ?>
+    <?php echo htmlEscape($row['title']) ?>
 
 </h2>
 <div>
-    <?php echo $row['created_at'] ?>
+    <?php echo convertSqlDate($row['created_at'])?>
     </div>
     <p>
-        <?php echo htmlspecialchars($row['body'],ENT_HTML5,'utf-8')?>
-        </p>
-</body>
+        
+        <?php echo convertNewLinesToParagraphs($row['text']) ?>
+    </p>
+    <h3><?php echo countCommentsForPost($post_id) ?> comments</h3>
+    <?php foreach (getCommentsForPost($post_id) as $comment):    ?>
+        <?php // For now, we'll use a horizontal rule-off to split it up a bit ?>
+         <hr/>
+         <div class="comment">
+            <div class="comment-meta">
+                Comment from
+                <?php echo htmlEscape($comment['name']) ?>
+                on --
+                <?php echo convertSqlDate($comment['created_at'])?>
+            </div>
+        <div class="comment-body">
+          <?php echo htmlEscape($comment['text']) ?>      
+    </div>
+       <?php endforeach; ?>
+</body> 
 
 
 

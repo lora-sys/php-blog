@@ -1,4 +1,3 @@
-
 DROP TABLE IF EXISTS post;
 CREATE TABLE post (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -8,7 +7,7 @@ CREATE TABLE post (
     created_at VARCHAR NOT NULL,
     updated_at VARCHAR
 );
-INSERT INTO
+INSERT INFO
     post
     (
         title, body, user_id, created_at
@@ -47,3 +46,39 @@ This is split into paragraphs.",
         date('now', '-13 days')
     )
 ;
+
+DROP TABLE IF EXISTS comment;
+CREATE TABLE comment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    post_id INTEGER NOT NULL,
+    created_at VARCHAR NOT NULL,
+    name VARCHAR NOT NULL,
+    website VARCHAR,
+    text VARCHAR NOT NULL
+);
+ INSERT INTO
+    comment
+    (
+        post_id,created_at,name,website,text
+    )
+    VALUES(
+        1,
+        date('now','-10 days'),
+        'jimy',
+        'http://example.com',
+        'This is a comment on the first post.'
+    )
+;
+ 
+INSERT INTO 
+
+    (
+        post_id,created_at,name,website,text
+    )
+    VALUES(
+        2,
+        date('now','-8 days'),
+        'Jonny',
+        'http://example1.com',
+        'This is a comment on the second post.'
+    );
