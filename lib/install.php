@@ -64,6 +64,63 @@ function installBlog(PDO $pdo)
     return array($count, $error);
 }
 
+// 博客创建新用户在数据库 ，函数接受用户名
+function createUser(PDO $pdo, $username, $length = 10)
+{
+    // 生成一个随机密码
+    $alphabet = range(ord('A'), ord('Z'));
+    $alphabetSize = count($alphabet);
+
+    $password = '';
+    for ($i = 0; $i < $length; $i++)
+    {
+        $letterCode = $alphabet[rand(0, $alphabetSize - 1)];
+        $password .= chr($letterCode);
+    }
+
+    $error = '';
+    //数据库插入语句
+    $sql = '
+        INSERT INTO user
+            (username, password, created_at)
+        VALUES
+            (:username, :password, :created_at)
+    ';
+    $stmt = $pdo->prepare($sql);
+    if ($stmt === false)
+    {
+        $error = '不能勾创建用户';
+    }
+
+    //目前密码用明文存储，没有用加密，会导致问题
+    if (!$error)
+    {
+        //创造一个哈希的密码。去保存数据库密码
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        if ($hash === false)
+        {
+            $error = '不能创建密码哈希';
+        }
+    }
+
+    //执行插入语句
+    if (!$error)
+    {
+        $result = $stmt->execute(
+            array(
+                'username' => $username,
+                'password' => $hash,
+                'created_at' => getSqlDateForNow(),
+            )
+        );
+        if ($result === false)
+        {
+            $error = "不能运行创建用户进入的语句";
+        }
+    }
+    // if (!$error ) $password=""; //在创造后，防止明文密码。会在存入数据库后。清空？
+    return array($password, $error);
+}
 
 
 // 博客安装程序，返回数组，个数，和错误信息

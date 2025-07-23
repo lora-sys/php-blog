@@ -13,8 +13,18 @@ if ($_POST)
 {
     // Here we store the results of the installation in the session
     $pdo =getPDO();
-    list($_SESSION['count'], $_SESSION['error']) = installBlog($pdo);
-
+    list($rowCounts,$error)=installBlog($pdo);
+    $password='';
+    if(!$error){
+        $username='admin';
+        list($password,$error)=createUser($pdo,$username);
+    }
+   $_SESSION['count']=$rowCounts;
+   $_SESSION['password']=$password;
+   $_SESSION['username']=$username;
+   $_SESSION['password']=$password;
+    $_SESSION['error']=$error;
+    $_SESSION['try-install']=true;
     // Redirect to self, so we can show the results (from POST to GET)
     redirectAndExit('install.php');
 
@@ -22,13 +32,15 @@ if ($_POST)
 
 // Let's report on the installation attempt
 $attempted = isset($_SESSION['error']) || isset($_SESSION['count']);
-if ($attempted)
+if (isset($_SESSION['try-install']))
 {
     $error = isset($_SESSION['error']) ? $_SESSION['error'] : '';
     $count = isset($_SESSION['count']) ? $_SESSION['count'] : array();
-
+    $password =$_SESSION['password'];
+    $username =$_SESSION['username'];
     // Unset the session data, so we only report the install/failure once
     unset($_SESSION['count'], $_SESSION['error']);
+    unset($_SESSION['try-install'],$_SESSION['password'],$_SESSION['username']);
 }
 
 ?>
@@ -61,6 +73,7 @@ if ($attempted)
             <?php else: ?>
                 <div class="success box">
                     The database and demo data were created OK.
+                    <?php // REPORT the counts for each table?>
                     <?php foreach (array('post', 'comment') as $tableName): ?>
                         <?php if (isset($count[$tableName])): ?>
                             <?php echo $count[$tableName] ?> new
@@ -68,6 +81,10 @@ if ($attempted)
                             were created.
                         <?php endif ?>
                     <?php endforeach ?>
+                    <?php //报告新密码?>
+                    The new '<?php echo htmlEscape($username) ?>'password is 
+                    <span style="font-size:1.2em"><?php echo htmlEscape($password) ?></span>
+                    
                 </div>
             <?php endif ?>
         <p>

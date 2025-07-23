@@ -1,13 +1,19 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Work out the path to the database, so SQLite/PDO can connect
 require 'lib/common.php';
 // Connect to the database, run a query, handle errors
+session_start();
 try{
 $pdo=getPDO();
 $stmt = $pdo->query(
     'SELECT
        id, title, created_at, body
     FROM
+
         post
     ORDER BY
         created_at DESC'
@@ -42,7 +48,7 @@ $notFound=isset($_GET['not-found']);
                 <?php echo htmlEscape($row['title']); ?>
             </h2>
             <div>
-                <?php echo convertSqlDate($row['created_at']); ?>
+                Created on <?php echo convertSqlDate($row['created_at']); ?>
                 (<?php echo countCommentsForPost($row['id'])?> comments)
             </div>
             <p>

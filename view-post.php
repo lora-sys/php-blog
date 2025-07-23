@@ -3,6 +3,7 @@ require_once 'lib/common.php';
 require_once 'lib/view-post.php';
 // get the post id
 // get 或得页面信息
+session_start();
 if (isset($_GET['post_id'])) {
     $post_id = $_GET['post_id'];
 } else {
@@ -60,7 +61,7 @@ if($_POST)
     </div>
     <p>
         
-        <?php echo convertNewLinesToParagraphs($row['text']) ?>
+        <?php echo convertNewLinesToParagraphs($row['body']) ?>
     </p>
     <h3><?php echo countCommentsForPost($post_id) ?> comments</h3>
     <?php foreach (getCommentsForPost($post_id) as $comment):    ?>

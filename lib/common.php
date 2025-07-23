@@ -33,11 +33,21 @@ function htmlEscape($html)
     return htmlspecialchars($html, ENT_HTML5, 'UTF-8');
 }
 
-function convertSqlDate($sqlDate){
-    /*@var $date DateTime */
-    $date=DateTime::createFromFormat('Y-m-d H:i:s',$sqlDate);
-    return $date->format('d M Y,H:i');
+function convertSqlDate($sqlDate)
+{
+    // SQLite's date() function provides the 'Y-m-d' format.
+    // We use '!' to ensure the time is set to 00:00:00 and avoid any ambiguity.
+    $date = DateTime::createFromFormat('!Y-m-d', $sqlDate);
+
+    // If parsing fails for any reason, just return the original string to avoid crashing.
+    if ($date === false) {
+        return $sqlDate;
+    }
+
+    // If successful, format it into a user-friendly date.
+    return $date->format('d M Y');
 }
+
 /**
  * returns number of the comments for the specified post
  * @param integer $postid $name
@@ -99,5 +109,38 @@ function redirectAndExit($script){
 function getSqlDateForNow()
 {
     return date('Y-m-d H:i:s');
+}
+
+function tryLogin(PDO $pdo,$username,$password){
+    $sql = "
+    SELECT 
+    password
+    FROM
+    user
+    WHERE
+    username =:username
+    ";
+    $stmt=$pdo->prepare($sql);
+    $stmt->execute(array('username'=>$username,));
+    //执行查询语句，从用户表获取密码，并使用密码验证库检查跟数据库密码一样不一样
+    $hash=$stmt->fetchColumn();
+    $success=password_verify($password,$hash);
+    return $success;
+    // 返回成功或者失败，与数据库对应的密码比对
+}
+function login($username){
+    session_regenerate_id();
+    $_SESSION['logged_in_username']=$username;
+}
+//用户登出
+function logout(){
+    unset($_SESSION['logged_in_username']);
+}
+function getAuthUser(){
+    return isLoggedIn()? $_SESSION['logged_in_username'] : null;
+}
+
+function isLoggedIn(){
+    return isset($_SESSION['logged_in_username']);
 }
 ?>

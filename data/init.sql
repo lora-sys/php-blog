@@ -7,7 +7,7 @@ CREATE TABLE post (
     created_at VARCHAR NOT NULL,
     updated_at VARCHAR
 );
-INSERT INFO
+INSERT INTO
     post
     (
         title, body, user_id, created_at
@@ -71,7 +71,7 @@ CREATE TABLE comment (
 ;
  
 INSERT INTO 
-
+    comment
     (
         post_id,created_at,name,website,text
     )
@@ -82,3 +82,12 @@ INSERT INTO
         'http://example1.com',
         'This is a comment on the second post.'
     );
+
+
+CREATE TABLE user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    username VARCHAR NOT NULL,
+    password VARCHAR NOT NULL,
+    created_at VARCHAR NOT NULL,
+    is_enabled BOOLEAN NOT NULL DEFAULT true
+);
