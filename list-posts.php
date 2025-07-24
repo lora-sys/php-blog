@@ -43,7 +43,7 @@ $posts = getAllPosts($pdo);
 <body>
     <?php require 'templates/top-menu.php' ?>
     <h1>文章列表</h1>
-    <p>您共有 <?php echo count($posts) ?> 篇文章。</p>
+    <p>You have <?php echo count($posts) ?> 文章.
     <p>在这里您可以编辑或删除文章。</p>
     <form method="post">
         <table id="post-list">
