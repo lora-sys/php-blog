@@ -54,7 +54,24 @@ function convertSqlDate($sqlDate)
     return $date->format('d M Y');
 }
 
+/**
+ * 统计指定文章的评论总数
+ * @param PDO $pdo 
+ * @param integer $postId
+ * @return integer
+*/
+function countCommentsForPost(PDO $pdo,$postId){
+    $sql="
+    SELECT
+    COUNT(*) c
+    FROM  comment
+    WHERE post_id=:post_id
+    ";
+    $stmt=$pdo->prepare($sql);
+    $stmt->execute(array('post_id'=>$postId));
 
+    return (int) $stmt->fetchColumn();
+}
 
 /**
  * 获取指定文章的所有评论
@@ -66,6 +83,8 @@ function getCommentsForPost(PDO $pdo,$postId){
     $sql = "
     SELECT 
     id, name, text, created_at, website
+    id, title, created_at, body,
+        (SELECT COUNT(*) FROM comment WHERE comment.post_id = post.id) comment_count
     FROM comment
     WHERE post_id = :post_id
     ";
@@ -112,30 +131,21 @@ function getSqlDateForNow()
  * @param string $password
  * @return boolean 成功返回true，失败返回false
  */
-function tryLogin(PDO $pdo, $username, $password)
-{
+function tryLogin(PDO $pdo,$username,$password){
     $sql = "
-        SELECT
-            password
-        FROM
-            user
-        WHERE
-            username = :username AND is_enabled = 1
+    SELECT 
+    password
+    FROM
+    user
+    WHERE
+    username =:username
     ";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute(
-        array('username' => $username)
-    );
+    $stmt=$pdo->prepare($sql);
+    $stmt->execute(array('username'=>$username,));
 
-    // 获取哈希值
-    $hash = $stmt->fetchColumn();
-    if (!$hash)
-    {
-        return false;
-    }
-
-    // 如果找到了用户，就验证密码
-    return password_verify($password, $hash);
+    $hash=$stmt->fetchColumn();
+    $success=password_verify($password,$hash);
+    return $success;
 }
 
 // 登录用户，设置session
