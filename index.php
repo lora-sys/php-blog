@@ -20,7 +20,7 @@ $stmt = $pdo->query(
 );
 }catch(PDOException $e){
 die('Database error: ' . $e->getMessage());
-};
+}
 if ($stmt === false)
 {
     throw new Exception('There was a problem running this query');
