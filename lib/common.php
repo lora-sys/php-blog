@@ -17,7 +17,16 @@ function getDsn(){
 //get the pdo object for the database
 //@return PDO
 function getPDO(){
-return new PDO(getDsn());
+$pdo =new PDO(getDsn());
+
+//外键约束 常量，必须在sqlite
+$result=$pdo->query('PRAGMA foreign_keys = ON');
+if($result === false){
+    throw new Exception('There was a problem enabling foreign keys');
+}
+
+return $pdo;
+
 }
 //escapes html so it is safe to output
 //@param string $html
@@ -50,11 +59,11 @@ function convertSqlDate($sqlDate)
 
 /**
  * returns number of the comments for the specified post
- * @param integer $postid $name
+* @param PDO $pdo 
+* @param integer $postid $name
  * @return integer
 */
-function countCommentsForPost($postId){
-$pdo=getPDO();
+function countCommentsForPost(PDO $pdo,$postId){
 $sql="
 SELECT
 COUNT(*) c
@@ -68,9 +77,10 @@ return (int) $stmt->fetchColumn();
 }
 /**
  * return all the comments for the specified post
- * @param integer $postId 
+ * @param integer $postId  $pdo
+ * @return array
  */
-function getCommentsForPost($postId){
+function getCommentsForPost(PDO $pdo,$postId){
     $pdo = getPDO();
     $sql = "
     SELECT 

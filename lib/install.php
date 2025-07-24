@@ -39,16 +39,25 @@ function installBlog(PDO $pdo)
     // Connect to the new database and try to run the SQL commands
     if (!$error)
     {
-        $result = $pdo->exec($sql);
-        if ($result === false)
+        $statements = explode(';', $sql);
+        foreach ($statements as $statement)
         {
-            $error = 'Could not run SQL: ' . print_r($pdo->errorInfo(), true);
+            $statement = trim($statement);
+            if ($statement)
+            {
+                $result = $pdo->exec($statement);
+                if ($result === false)
+                {
+                    $error = 'Could not run SQL: ' . print_r($pdo->errorInfo(), true);
+                    break;
+                }
+            }
         }
     }
 
     // See how many rows we created, if any
     $count = array();
-    foreach (array('post', 'comment') as $tableName)
+    foreach (array('post', 'comment', 'user') as $tableName)
     {
         if (!$error)
         {
@@ -64,7 +73,7 @@ function installBlog(PDO $pdo)
     return array($count, $error);
 }
 
-// 博客创建新用户在数据库 ，函数接受用户名
+// 更新用户在数据库
 function createUser(PDO $pdo, $username, $length = 10)
 {
     // 生成一个随机密码
@@ -81,15 +90,19 @@ function createUser(PDO $pdo, $username, $length = 10)
     $error = '';
     //数据库插入语句
     $sql = '
-        INSERT INTO user
-            (username, password, created_at)
-        VALUES
-            (:username, :password, :created_at)
+        UPDATE 
+        user
+        SET
+            password=:password,
+            created_at=:created_at,
+            is_enabled = 1
+        WHERE
+            username=:username
     ';
     $stmt = $pdo->prepare($sql);
     if ($stmt === false)
     {
-        $error = '不能勾创建用户';
+        $error = 'Could not prepare the user update';
     }
 
     //目前密码用明文存储，没有用加密，会导致问题
@@ -99,7 +112,7 @@ function createUser(PDO $pdo, $username, $length = 10)
         $hash = password_hash($password, PASSWORD_DEFAULT);
         if ($hash === false)
         {
-            $error = '不能创建密码哈希';
+            $error = 'Could not hash the password';
         }
     }
 
@@ -115,10 +128,10 @@ function createUser(PDO $pdo, $username, $length = 10)
         );
         if ($result === false)
         {
-            $error = "不能运行创建用户进入的语句";
+            $error = "Could not run the user password update";
         }
     }
-    // if (!$error ) $password=""; //在创造后，防止明文密码。会在存入数据库后。清空？
+    
     return array($password, $error);
 }
 
