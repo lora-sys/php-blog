@@ -80,7 +80,12 @@ if ($_POST) {
         <?php require 'templates/head.php'; ?>
     </head>
     <body>
-        <?php require 'templates/title.php'; ?>
+        <?php require 'templates/top-menu.php'; ?>
+        <?php if(isset($_GET['post_id'])):?>
+            <h1>编辑文章</h1>
+            <?php else:?>
+                <h1>新建文章</h1>
+                <?php endif;?>
 
         <?php // 如果$errors数组不为空，就把它里面的错误信息逐条显示出来 ?>
         <?php if ($errors): ?>
@@ -117,6 +122,7 @@ if ($_POST) {
                     type="submit"
                     value="保存文章"
                 />
+                <a href="index.php">取消</a>
             </div>
         </form>
     </body>

@@ -2,7 +2,9 @@
 require_once 'lib/common.php';
 
 session_start();
-
+if(isLoggedIn()){
+    redirectAndExit('index.php');
+}
 $username = '';
 if ($_POST) {
     $pdo = getPDO();
@@ -18,7 +20,7 @@ if ($_POST) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>A log application | login</title>
+    <title>博客应用 | 登录</title>
     <?php require 'templates/head.php'?>
 </head>
 <body>
@@ -44,7 +46,7 @@ if ($_POST) {
                 name="password"
             />
         </p>
-        <input type="submit" name="submit" value="login"/>
+        <input type="submit" name="submit" value="登录"/>
     </form>
 </body>
 </html>

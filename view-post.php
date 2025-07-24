@@ -83,6 +83,11 @@ if($_POST)
        <?php endforeach; ?>
     </div>
        <?php require 'templates/comment-form.php';?>
+<p>
+    <a href="index.php">
+    Back to the home page
+    </a>
+</p>
 </body> 
 
 

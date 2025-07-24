@@ -57,7 +57,7 @@ function writeCommentForm(PDO $pdo,$postId,array $commentData)
     if($result===false){
         $errorInfo=$stmt->errorInfo();
         if($errorInfo){
-            $errorss[]=$errorInfo[2];
+            $errors[]=$errorInfo[2];
         }
     }
 }

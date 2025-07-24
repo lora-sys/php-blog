@@ -22,7 +22,6 @@ if ($_POST)
    $_SESSION['count']=$rowCounts;
    $_SESSION['password']=$password;
    $_SESSION['username']=$username;
-   $_SESSION['password']=$password;
     $_SESSION['error']=$error;
     $_SESSION['try-install']=true;
     // Redirect to self, so we can show the results (from POST to GET)
@@ -47,7 +46,7 @@ if (isset($_SESSION['try-install']))
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Blog installer</title>
+        <title>博客安装程序</title>
         <?php require 'templates/head.php'?>
     </head>
     <body>
@@ -59,34 +58,33 @@ if (isset($_SESSION['try-install']))
                 </div>
             <?php else: ?>
                 <div class="success box">
-                    The database and demo data were created OK.
+                    数据库和演示数据已成功创建。
                     <?php // REPORT the counts for each table?>
                     <?php foreach (array('post', 'comment') as $tableName): ?>
                         <?php if (isset($count[$tableName])): ?>
-                            <?php echo $count[$tableName] ?> new
-                            <?php echo $tableName ?>s
-                            were created.
+                            创建了 <?php echo $count[$tableName] ?> 条新的
+                            <?php echo $tableName ?> 记录。
                         <?php endif ?>
                     <?php endforeach ?>
                     <?php //报告新密码?>
-                    The new '<?php echo htmlEscape($username) ?>'password is 
+                    新的 '<?php echo htmlEscape($username) ?>' 用户密码是：
                    <span class="install-password"><?php echo htmlEscape($password)?></span>
                     
                 </div>
             <?php endif ?>
         <p>
-            <a href="index.php">View the blog</a> 
-            <a href="install.php"> install again</a> 
+            <a href="index.php">查看博客</a> 
+            <a href="install.php"> 再次安装</a> 
             </p>
         <?php else: ?>
 
-            <p>Click the install button to reset the database.</p>
+            <p>点击下方的安装按钮来重置数据库。</p>
 
             <form method="post" action="install.php">
                 <input
                     name="install"
                     type="submit"
-                    value="Install"
+                    value="安装"
                     />
             </form>
 

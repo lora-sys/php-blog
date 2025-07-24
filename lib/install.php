@@ -2,41 +2,41 @@
 
 function installBlog(PDO $pdo) 
 {
-    //获取一个游泳池的项目路径
+    // 获取项目根目录
     $root = getRootPath();
     $database = getDatabasePath();
     $error = '';
 
-    // A security measure, to avoid anyone resetting the database if it already exists
+    // 安全措施，如果数据库文件已存在，则阻止安装
     if (is_readable($database) && filesize($database) > 0)
     {
-        $error = 'Please delete the existing database manually before installing it afresh';
+        $error = '请在重新安装前，手动删除已存在的数据库文件';
     }
 
-    // Create an empty file for the database
+    // 如果没有错误，则创建空的数据库文件
     if (!$error)
     {
         $createdOk = @touch($database);
         if (!$createdOk)
         {
             $error = sprintf(
-                'Could not create the database, please allow the server to create new files in %s',
+                '无法创建数据库，请检查服务器在 %s 目录下的文件写入权限',
                 dirname($database)
             );
         }
     }
 
-    // Grab the SQL commands we want to run on the database
+    // 获取用于初始化的SQL命令
     if (!$error)
     {
         $sql = file_get_contents($root . '/data/init.sql');
         if ($sql === false)
         {
-            $error = 'Cannot find SQL file';
+            $error = '找不到SQL初始化文件';
         }
     }
 
-    // Connect to the new database and try to run the SQL commands
+    // 执行SQL命令
     if (!$error)
     {
         $statements = explode(';', $sql);
@@ -48,14 +48,14 @@ function installBlog(PDO $pdo)
                 $result = $pdo->exec($statement);
                 if ($result === false)
                 {
-                    $error = 'Could not run SQL: ' . print_r($pdo->errorInfo(), true);
+                    $error = '无法执行SQL: ' . print_r($pdo->errorInfo(), true);
                     break;
                 }
             }
         }
     }
 
-    // See how many rows we created, if any
+    // 统计每个表中创建的行数
     $count = array();
     foreach (array('post', 'comment', 'user') as $tableName)
     {
@@ -65,7 +65,6 @@ function installBlog(PDO $pdo)
             $stmt = $pdo->query($sql);
             if ($stmt)
             {
-                // We store each count in an array
                 $count[$tableName] = $stmt->fetchColumn();
             }
         }
@@ -73,7 +72,7 @@ function installBlog(PDO $pdo)
     return array($count, $error);
 }
 
-// 更新用户在数据库
+// 在数据库中为管理员创建初始密码
 function createUser(PDO $pdo, $username, $length = 10)
 {
     // 生成一个随机密码
@@ -88,7 +87,7 @@ function createUser(PDO $pdo, $username, $length = 10)
     }
 
     $error = '';
-    //数据库插入语句
+    // 更新用户的SQL语句
     $sql = '
         UPDATE 
         user
@@ -102,21 +101,20 @@ function createUser(PDO $pdo, $username, $length = 10)
     $stmt = $pdo->prepare($sql);
     if ($stmt === false)
     {
-        $error = 'Could not prepare the user update';
+        $error = '无法准备用户更新语句';
     }
 
-    //目前密码用明文存储，没有用加密，会导致问题
+    // 对密码进行哈希处理
     if (!$error)
     {
-        //创造一个哈希的密码。去保存数据库密码
         $hash = password_hash($password, PASSWORD_DEFAULT);
         if ($hash === false)
         {
-            $error = 'Could not hash the password';
+            $error = '无法对密码进行哈希处理';
         }
     }
 
-    //执行插入语句
+    // 执行更新语句
     if (!$error)
     {
         $result = $stmt->execute(
@@ -128,12 +126,9 @@ function createUser(PDO $pdo, $username, $length = 10)
         );
         if ($result === false)
         {
-            $error = "Could not run the user password update";
+            $error = "无法执行用户密码更新语句";
         }
     }
     
     return array($password, $error);
 }
-
-
-// 博客安装程序，返回数组，个数，和错误信息

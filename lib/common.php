@@ -1,38 +1,34 @@
 <?php 
-// @return string
-// workout the path to the database so sqlite/pdp can connect
-function getROOtPath(){
+// 获取项目的根目录路径
+function getRootPath(){
     return realpath(__DIR__.'/..');
 }
-// get full path for the database file
-//@return string
+
+// 获取数据库文件的完整路径
 function getDatabasePath(){
     return getROOtPath().'/data/data.sqlite';
 }
-// get the dsn for the sqite common
 
+// 获取用于PDO连接的DSN字符串
 function getDsn(){
     return 'sqlite:' .getDatabasePath();
 }
-//get the pdo object for the database
-//@return PDO
+
+// 获取PDO数据库连接对象
 function getPDO(){
-$pdo =new PDO(getDsn());
+    $pdo =new PDO(getDsn());
 
-//外键约束 常量，必须在sqlite
-$result=$pdo->query('PRAGMA foreign_keys = ON');
-if($result === false){
-    throw new Exception('There was a problem enabling foreign keys');
+    // 开启外键约束，确保数据完整性
+    $result=$pdo->query('PRAGMA foreign_keys = ON');
+    if($result === false){
+        throw new Exception('数据库无法开启外键约束');
+    }
+
+    return $pdo;
 }
 
-return $pdo;
-
-}
-//escapes html so it is safe to output
-//@param string $html
-//@return string
 /**
- * Escapes HTML so it is safe to output
+ * 安全地转义HTML，防止XSS攻击
  *
  * @param string $html
  * @return string
@@ -42,46 +38,48 @@ function htmlEscape($html)
     return htmlspecialchars($html, ENT_HTML5, 'UTF-8');
 }
 
+/**
+ * 将SQL格式的日期（Y-m-d）转换为更友好的格式（d M Y）
+ * @param string $sqlDate
+ * @return string
+ */
 function convertSqlDate($sqlDate)
 {
-    // SQLite's date() function provides the 'Y-m-d' format.
-    // We use '!' to ensure the time is set to 00:00:00 and avoid any ambiguity.
     $date = DateTime::createFromFormat('!Y-m-d', $sqlDate);
 
-    // If parsing fails for any reason, just return the original string to avoid crashing.
     if ($date === false) {
         return $sqlDate;
     }
 
-    // If successful, format it into a user-friendly date.
     return $date->format('d M Y');
 }
 
 /**
- * returns number of the comments for the specified post
-* @param PDO $pdo 
-* @param integer $postid $name
+ * 统计指定文章的评论总数
+ * @param PDO $pdo 
+ * @param integer $postId
  * @return integer
 */
 function countCommentsForPost(PDO $pdo,$postId){
-$sql="
-SELECT
-COUNT(*) c
-FROM  comment
-WHERE post_id=:post_id
-";
-$stmt=$pdo->prepare($sql);
-$stmt->execute(array('post_id'=>$postId));
+    $sql="
+    SELECT
+    COUNT(*) c
+    FROM  comment
+    WHERE post_id=:post_id
+    ";
+    $stmt=$pdo->prepare($sql);
+    $stmt->execute(array('post_id'=>$postId));
 
-return (int) $stmt->fetchColumn();
+    return (int) $stmt->fetchColumn();
 }
+
 /**
- * return all the comments for the specified post
- * @param integer $postId  $pdo
+ * 获取指定文章的所有评论
+ * @param PDO $pdo
+ * @param integer $postId
  * @return array
  */
 function getCommentsForPost(PDO $pdo,$postId){
-    $pdo = getPDO();
     $sql = "
     SELECT 
     id, name, text, created_at, website
@@ -92,35 +90,45 @@ function getCommentsForPost(PDO $pdo,$postId){
     $result = $stmt->execute(array('post_id' => $postId,));
     
     if (!$result) {
-        throw new Exception('Failed to execute query for comments.');
+        throw new Exception('获取评论失败');
     }
     
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-// 安全转换文本，段落，html。接受文本，返回字符串文本
+
+// 将换行符转换为HTML段落标签
 function convertNewLinesToParagraphs($text){
     $escaped=htmlEscape($text);
     return '<p>'.str_replace("\n","<p></p>",$escaped).'</p>';
 }
 
-
+/**
+ * 跳转到指定脚本并退出
+ * @param string $script
+ */
 function redirectAndExit($script){
     $relativeUrl = $_SERVER['PHP_SELF'];
     $urlFolder = substr($relativeUrl, 0, strrpos($relativeUrl, '/') + 1);
-    //#urlFolder=dirname( $relativeUrl);)
-    // Redirect to the full URL (http://myhost/blog/script.php)
+
     $host = $_SERVER['HTTP_HOST'];
     $fullUrl = 'http://' . $host . $urlFolder . $script;
     header('Location: ' . $fullUrl);
     exit();
 }
 
-
+// 获取当前时间的SQL格式字符串
 function getSqlDateForNow()
 {
     return date('Y-m-d H:i:s');
 }
 
+/**
+ * 尝试登录，验证用户名和密码
+ * @param PDO $pdo
+ * @param string $username
+ * @param string $password
+ * @return boolean 成功返回true，失败返回false
+ */
 function tryLogin(PDO $pdo,$username,$password){
     $sql = "
     SELECT 
@@ -132,31 +140,35 @@ function tryLogin(PDO $pdo,$username,$password){
     ";
     $stmt=$pdo->prepare($sql);
     $stmt->execute(array('username'=>$username,));
-    //执行查询语句，从用户表获取密码，并使用密码验证库检查跟数据库密码一样不一样
+
     $hash=$stmt->fetchColumn();
     $success=password_verify($password,$hash);
     return $success;
-    // 返回成功或者失败，与数据库对应的密码比对
 }
+
+// 登录用户，设置session
 function login($username){
     session_regenerate_id();
     $_SESSION['logged_in_username']=$username;
 }
-//用户登出
+
+// 登出用户，销毁session
 function logout(){
     unset($_SESSION['logged_in_username']);
 }
+
+// 获取当前登录的用户名
 function getAuthUser(){
     return isLoggedIn()? $_SESSION['logged_in_username'] : null;
 }
 
+// 检查用户是否已登录
 function isLoggedIn(){
     return isset($_SESSION['logged_in_username']);
 }
 
-
+// 根据当前登录的用户名，获取用户ID
 function getAuthUserId(PDO $pdo){
-    //没有登录返回空
     if(!isLoggedIn()){
         return null;
     }
@@ -173,6 +185,7 @@ function getAuthUserId(PDO $pdo){
         );
         return $stmt->fetchColumn();
 }
+
 
 
 ?>
