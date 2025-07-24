@@ -1,44 +1,44 @@
-# Simple PHP & SQLite Blog
+# 📝 轻量级 PHP + SQLite 博客项目
 
-This is a lightweight, procedural-style blog application built with PHP and using a SQLite database. It serves as a great example for learning the basics of web development with PHP, including database interaction, handling user input, and a simple admin system.
+这是一个使用原生 PHP 和 SQLite 数据库构建的轻量级博客应用。它采用过程化编程风格，非常适合用来学习 PHP Web开发的基础知识，包括数据库交互、处理用户输入、以及一个简单的后台系统。
 
-## Features
+## ✨ 功能特点
 
-- View a list of blog posts.
-- Click to view a full individual post.
-- Post comments on articles.
-- An installation script to set up the database.
-- A simple admin login system to manage content (functionality to be extended).
+- 📰 查看文章列表
+- 📖 阅读单篇文章的完整内容
+- 💬 在文章下方发表评论
+- 🛠️ 提供一个一键安装脚本，用于自动创建数据库和表结构
+- 🔑 一个简单的后台登录系统
 
-## Requirements
+## ⚙️ 环境要求
 
-- A web server with PHP support (e.g., XAMPP, MAMP, or a standard LAMP/LEMP stack).
-- The PHP PDO extension enabled, specifically the `pdo_sqlite` driver.
+- 🌐 一个支持PHP的Web服务器 (例如 XAMPP, MAMP, 或标准的 LAMP/LEMP 环境)
+- ✅ PHP 已开启 PDO 扩展，特别是 `pdo_sqlite` 驱动。
 
-## Installation
+## 🚀 安装步骤
 
-1.  **Place the Files:** Ensure all the project files are in a directory accessible by your web server (e.g., inside the `htdocs` folder for XAMPP).
+1.  **📁 放置文件:** 将所有项目文件放置到你的 Web 服务器可访问的目录中 (例如 XAMPP 的 `htdocs` 文件夹内)。
 
-2.  **Set Permissions:** Make sure your web server has permission to create and write files in the `blog/data/` directory. The installation script needs to create the `data.sqlite` database file.
+2.  **🔒 设置权限:** 请确保你的 Web 服务器有权限在 `blog/data/` 目录下创建和写入文件。安装脚本需要在此处创建 `data.sqlite` 数据库文件。
 
-3.  **Run the Installer:** Open your web browser and navigate to the installation script. If your project is in a `blog` folder, the URL will be:
+3.  **🚀 运行安装程序:** 打开你的浏览器，访问安装脚本。如果你的项目放在 `blog` 文件夹下，那么访问地址是：
     ```
     http://localhost/blog/install.php
     ```
 
-4.  **Save Your Password:** The installation script will set up the database and create an `admin` user with a **randomly generated password**. This password will be displayed on the screen upon successful installation. **Please copy and save this password immediately**, as you will need it to log in.
+4.  **⚠️ 保存你的密码:** 安装脚本会自动设置好数据库，并创建一个 `admin` 用户和一个**随机生成的密码**。安装成功后，密码会直接显示在屏幕上。**请立即复制并保存好这个密码**，这是你登录后台的唯一凭证！
 
-5.  **Delete the Database (for re-installation):** If you need to run the installer again, you must first manually delete the `blog/data/data.sqlite` file.
+5.  **🗑️ 重新安装:** 如果需要重新安装，你必须先手动删除 `blog/data/data.sqlite` 这个数据库文件。
 
-## How to Use
+## 🕹️ 如何使用
 
-### Viewing the Blog
+### 浏览博客
 
-- The main page `/blog/index.php` lists all blog posts.
-- Click on a post's "Read more..." link to go to the `view-post.php` page for that article, where you can also see and add comments.
+- 访问主页 `/blog/index.php` 可以列出所有文章。
+- 点击文章下方的“Read more...”链接，即可跳转到该文章的详情页 (`view-post.php`)，在这里你也可以查看和发表评论。
 
-### Admin Login
+### 后台登录
 
-- Navigate to the login page at `/blog/login.php`.
-- **Username:** `admin`
-- **Password:** The password that was generated for you during the installation process.
+- 访问后台登录页面：`/blog/login.php`
+- **用户名:** `admin`
+- **密码:** 您在安装过程中获得的那个随机密码。
