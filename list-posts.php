@@ -52,15 +52,18 @@ $posts = getAllPosts($pdo);
                     <th>标题</th>
                     <th>创建日期</th>
                     <th colspan="2">操作</th>
+
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($posts as $row): ?>
                     <tr>
-                        <td><?php echo htmlEscape($row['title']) ?></td>
+                        <td><a href="view-post.php?post_id=<?php echo $post['id']?>"><?php echo htmlEscape($row['title'])?></a></td>
                         <td>
-                            <?php // 修正了这里的变量名错误 ?>
                             <?php echo convertSqlDate($row['created_at']) ?>
+                        </td>
+                        <td>
+                            <?php echo $row['comment_count'] ?>
                         </td>
                         <td>
                             <?php // 补全了“编辑”链接的文字 ?>

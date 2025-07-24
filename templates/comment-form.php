@@ -17,11 +17,16 @@
 
 
 <?php endif;?>
-<h3>Add your comment</h3>
-<form method="post" action="view-post.php?post_id=<?php echo $post_id ?>">
+<h3>添加你的评论</h3>
+
+<form
+    action="view-post.php?action=add-comment&amp;post_id=<?php echo $post_id?>"
+    method="post"
+    class="comment-form user-form"
+>
 <p>
     <label for="comment_name">
-        Name
+        名字
     </label>
     <input 
     type="text"
@@ -32,7 +37,7 @@
     </p>
 <p>
 <label for="comment_website">
-Website
+网站
     </label>
 <input
 type="text"
@@ -44,7 +49,7 @@ value="<?php echo htmlEscape($commentData['website']) ?>"
 
     <p>
         <label for="comment_text">
-            Comment:
+            评论:
             </label>
             <textarea
             id="comment_text"

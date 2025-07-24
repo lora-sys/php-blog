@@ -10,42 +10,59 @@ if (isset($_GET['post_id'])) {
     $post_id = 0;
 }
 
-
 $pdo=getPDO();
 $row=getPostRow($pdo, $post_id);
 if(!$row){
     redirectAndExit('index.php?not-found=1');
 }
-$errors=null;
-if($_POST)
+$errors = null;
+if ($_POST)
 {
-    $commentData=array(
-        'name'=>$_POST['comment_name'],//超全局数组
-        'website'=>$_POST['comment_website'],
-        'text'=>$_POST['comment_text'],
-    );
-    $errors=writeCommentForm(
-        $pdo,
-        $post_id,
-        $commentData
-    );
-    // 没有错，就重定向会自己，防止重复提交表单
-    if(!$errors){
-        redirectAndExit('view-post.php?post_id='.$post_id);
+    $action = isset($_GET['action']) ? $_GET['action'] : null;
+
+    switch ($action)
+    {
+        case 'add-comment':
+            $commentData = array(
+                'name' => $_POST['comment_name'],
+                'website' => $_POST['comment_website'],
+                'text' => $_POST['comment_text'],
+            );
+            $errors = handleAddComment($pdo, $post_id, $commentData);
+            if (!$errors) {
+                redirectAndExit('view-post.php?post_id=' . $post_id);
+            }
+            break;
+        case 'delete-comment':
+            // Don't do anything if the user is not authorised
+            if (isLoggedIn())
+            {
+                $deleteResponse = $_POST['delete-comment'];
+                $keys = array_keys($deleteResponse);
+                $deleteCommentId = $keys[0];
+                deleteComment($pdo, $post_id, $deleteCommentId);
+                redirectAndExit('view-post.php?post_id=' . $post_id);
+            }
+            break;
     }
-}else{
-    $commentData=array(
-        'name'=>'',
-        'website'=>'',
-        'text'=>'',
+}
+else
+{
+    $commentData = array(
+        'name' => '',
+        'website' => '',
+        'text' => '',
     );
 }
+
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>A blog application | <?php echo htmlspecialchars($row['title'], ENT_HTML5, 'utf-8') ?>
+    <title>博客应用 | <?php echo htmlspecialchars($row['title'], ENT_HTML5, 'utf-8') ?>
 </title>
 <?php require 'templates/head.php'?>
 </head>    
@@ -58,6 +75,7 @@ if($_POST)
 </h2>
 <div class="date">
     <?php echo convertSqlDate($row['created_at'])?>
+    by <?php echo htmlEscape($row['author_name']) ?>
     </div>
     <p>
         
@@ -65,27 +83,11 @@ if($_POST)
     </p>
     </div>
 
-    <div class="comment-list">
-        <h3><?php echo countCommentsForPost($pdo, $post_id) ?> comments</h3>
-        <?php foreach (getCommentsForPost($pdo, $post_id) as $comment):    ?>
-        <?php // For now, we'll use a horizontal rule-off to split it up a bit ?>
-         <hr/>
-         <div class="comment">
-            <div class="comment-meta">
-                Comment from
-                <?php echo htmlEscape($comment['name']) ?>
-                on --
-                <?php echo convertSqlDate($comment['created_at'])?>
-            </div>
-        <div class="comment-body">
-          <?php echo htmlEscape($comment['text']) ?>      
-        </div>
-       <?php endforeach; ?>
-    </div>
+    <?php require 'templates/list-comment.php'?>
        <?php require 'templates/comment-form.php';?>
 <p>
     <a href="index.php">
-    Back to the home page
+    返回主页
     </a>
 </p>
 </body> 

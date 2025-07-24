@@ -8,9 +8,13 @@
 function getAllPosts(PDO $pdo)
 {
     $stmt = $pdo->query(
-        'SELECT id, title, created_at, body
-        FROM post
-        ORDER BY created_at DESC'
+        'SELECT
+            id, title, created_at, body,
+            (SELECT COUNT(*) FROM comment WHERE comment.post_id = post.id) AS comment_count
+        FROM
+            post
+        ORDER BY
+            created_at DESC'
     );
     if ($stmt === false) {
         throw new Exception('获取所有文章时发生错误');
